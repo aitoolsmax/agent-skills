@@ -1,0 +1,46 @@
+{
+  "$schema": "./schemas/skills-config.schema.json",
+  "catalog": {
+    "owner": "aitoolsmax",
+    "repository": "agent-skills",
+    "license": "Apache-2.0",
+    "supportEmail": "support@aitoolsmax.com",
+    "defaultBranch": "main"
+  },
+  "platforms": {
+    "github": { "enabled": true, "mode": "source" },
+    "skillsSh": { "enabled": true, "mode": "telemetry-indexed", "priority": 0 },
+    "apifyAwesomeSkills": { "enabled": true, "mode": "pull-request", "priority": 1 },
+    "agentSkillSh": { "enabled": true, "mode": "github-sync", "priority": 2 },
+    "skillsMp": { "enabled": true, "mode": "passive-index", "priority": 3 },
+    "awesomeSkill": { "enabled": true, "mode": "passive-index", "priority": 4 },
+    "clawhub": { "enabled": false, "mode": "disabled", "reason": "Deferred pending explicit MIT-0 opt-in" },
+    "wellKnown": { "enabled": true, "mode": "generate-only", "deploy": false },
+    "mcpServers": { "enabled": false, "mode": "not-applicable", "reason": "Directory accepts MCP servers, not standalone Agent Skills" }
+  },
+  "skills": {
+    "apify-kick-scraper": {
+      "title": "Apify Kick Scraper",
+      "description": "Research Kick.com creators, channels, categories, and live streams with the AI Tools Max Kick Data Scraper Actor on Apify.",
+      "actorId": "aitooolsmax/kick-data-scraper",
+      "canonicalPath": "skills/apify-kick-scraper",
+      "version": "1.0.0",
+      "tags": ["apify", "kick", "kick.com", "creator-research", "market-research", "live-streams"],
+      "releaseValidation": {
+        "liveActorSmokeTest": true,
+        "maxItems": 1,
+        "budgetUsdPerSkill": 1,
+        "timeoutSeconds": 120,
+        "smokeInput": {
+          "mode": "search",
+          "searchKeywords": "gaming",
+          "maxItems": 1
+        }
+      },
+      "userAgents": {
+        "canonical": "aitoolsmax-agent-skills/apify-kick-scraper",
+        "apifyAwesomeSkills": "apify-awesome-skills/apify-kick-scraper"
+      }
+    }
+  }
+}

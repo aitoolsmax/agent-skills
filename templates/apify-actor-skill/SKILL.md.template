@@ -1,0 +1,40 @@
+---
+name: {{NAME}}
+description: {{DESCRIPTION}}
+---
+
+# {{TITLE}}
+
+Use `{{ACTOR_ID}}` for the workflows covered by this skill.
+
+## Prerequisites
+
+1. Confirm Apify CLI is installed with `apify --version`.
+2. Authenticate with `apify login` if needed. Never request or expose the user's token.
+3. Inspect the current public Actor contract before running it.
+
+## Workflow
+
+Set the stable Actor and telemetry identifiers:
+
+```bash
+ACTOR_ID='{{ACTOR_ID}}'
+USER_AGENT='{{USER_AGENT}}'
+```
+
+Inspect the input schema without saving a raw authenticated Actor record:
+
+```bash
+apify actors info "$ACTOR_ID" --input --user-agent "$USER_AGENT" 2>/dev/null
+```
+
+Document mode selection, create a minimal JSON input, and run the Actor with structured output. Add exact commands only after checking the Actor's public schema.
+
+## Guardrails
+
+- Explain scope and cost before a paid run.
+- Keep diagnostics off stdout when parsing JSON.
+- Never expose tokens, proxy credentials, cookies, or full authenticated Actor records.
+- Do not schedule or publish without explicit approval.
+
+Read [the Actor contract](references/actor-contract.md) before enabling release.

@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "name": "aitoolsmax-agent-skills",
+  "version": "1.0.0",
+  "description": "AI Tools Max Agent Skills backed by Apify Actors",
+  "owner": {
+    "name": "AI Tools Max",
+    "email": "support@aitoolsmax.com"
+  },
+  "plugins": [
+    {
+      "name": "aitoolsmax-agent-skills",
+      "description": "Portable AI Tools Max skills for Apify-powered research workflows.",
+      "version": "1.0.0",
+      "author": {
+        "name": "AI Tools Max",
+        "email": "support@aitoolsmax.com"
+      },
+      "source": "./",
+      "category": "data",
+      "strict": false,
+      "skills": [
+        "./skills/apify-kick-scraper"
+      ],
+      "homepage": "https://github.com/aitoolsmax/agent-skills"
+    }
+  ]
+}

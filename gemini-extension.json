@@ -1,0 +1,7 @@
+{
+  "name": "aitoolsmax-agent-skills",
+  "version": "1.0.0",
+  "description": "AI Tools Max skills for Apify Actors",
+  "contextFileName": "AGENTS.md",
+  "repository": "https://github.com/aitoolsmax/agent-skills"
+}

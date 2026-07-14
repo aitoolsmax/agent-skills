@@ -1,0 +1,118 @@
+import { readFile } from 'node:fs/promises';
+import path from 'node:path';
+import { copyDirectory, fromRoot, resetDirectory, writeText } from './files.mjs';
+
+function json(value) {
+  return `${JSON.stringify(value, null, 2)}\n`;
+}
+
+function yamlString(value) {
+  return JSON.stringify(value);
+}
+
+export async function buildCatalog(config, selectedSkills) {
+  await resetDirectory('dist');
+  const catalogSkills = [];
+
+  for (const [name, skill] of selectedSkills) {
+    await copyDirectory(skill.canonicalPath, `dist/skills-sh/${name}`);
+    await copyDirectory(skill.canonicalPath, `dist/apify-awesome-skills/${name}`);
+
+    const upstreamRoot = fromRoot('dist', 'apify-awesome-skills', name);
+    const upstreamFiles = await collectMarkdown(upstreamRoot);
+    for (const file of upstreamFiles) {
+      const content = await readFile(file, 'utf8');
+      await writeText(path.relative(fromRoot(), file), content.replaceAll(skill.userAgents.canonical, skill.userAgents.apifyAwesomeSkills));
+    }
+
+    await writeText(`${skill.canonicalPath}/agents/openai.yaml`, [
+      'interface:',
+      `  display_name: ${yamlString(skill.title)}`,
+      '  short_description: "Research Kick creators and live channels"',
+      `  default_prompt: ${yamlString(`Use $${name} to research Kick.com creators, categories, and live channels for my question.`)}`,
+      'policy:',
+      '  allow_implicit_invocation: true'
+    ].join('\n'));
+
+    catalogSkills.push({
+      name,
+      title: skill.title,
+      description: skill.description,
+      version: skill.version,
+      path: skill.canonicalPath,
+      repository: `https://github.com/${config.catalog.owner}/${config.catalog.repository}`,
+      install: `npx skills add ${config.catalog.owner}/${config.catalog.repository} --skill ${name} --yes`
+    });
+  }
+
+  const allSkills = Object.entries(config.skills).map(([name, skill]) => ({ name, ...skill }));
+  await writeText('AGENTS.md', renderAgents(config, allSkills));
+  await writeText('.claude-plugin/marketplace.json', json(renderClaudeMarketplace(config, allSkills)));
+  await writeText('gemini-extension.json', json(renderGeminiExtension(config)));
+  await writeText('.well-known/agent-skills/index.json', json({
+    schema_version: '1.0',
+    generated_from: `https://github.com/${config.catalog.owner}/${config.catalog.repository}`,
+    deployment: 'disabled',
+    skills: catalogSkills
+  }));
+  await writeText('dist/build-manifest.json', json({
+    generatedAt: 'deterministic',
+    canonicalLicense: config.catalog.license,
+    platforms: {
+      skillsSh: 'generated',
+      apifyAwesomeSkills: 'generated',
+      wellKnown: 'generated-not-deployed',
+      clawhub: 'disabled'
+    },
+    skills: catalogSkills.map(({ name, version }) => ({ name, version }))
+  }));
+  return catalogSkills;
+}
+
+async function collectMarkdown(directory) {
+  const { readdir } = await import('node:fs/promises');
+  const entries = await readdir(directory, { withFileTypes: true });
+  const files = [];
+  for (const entry of entries) {
+    const fullPath = path.join(directory, entry.name);
+    if (entry.isDirectory()) files.push(...await collectMarkdown(fullPath));
+    else if (entry.name.endsWith('.md')) files.push(fullPath);
+  }
+  return files;
+}
+
+function renderAgents(config, skills) {
+  const rows = skills.map((skill) => `| \`${skill.name}\` | ${skill.description} | [SKILL.md](${skill.canonicalPath}/SKILL.md) |`).join('\n');
+  return `# AI Tools Max Agent Skills\n\nThis repository is generated from \`skills.config.json\`. Canonical skills live under \`skills/\`; do not hand-edit \`dist/\`.\n\n| Skill | Use when | Source |\n| --- | --- | --- |\n${rows}\n\n## Release policy\n\n- skills.sh is the first marketplace target.\n- ClawHub is deferred and disabled.\n- The canonical license is ${config.catalog.license}.\n- Live release tests are capped at USD $1 per skill per release.\n`;
+}
+
+function renderClaudeMarketplace(config, skills) {
+  return {
+    $schema: 'https://json.schemastore.org/claude-code-marketplace.json',
+    name: 'aitoolsmax-agent-skills',
+    version: '1.0.0',
+    description: 'AI Tools Max Agent Skills backed by Apify Actors',
+    owner: { name: 'AI Tools Max', email: config.catalog.supportEmail },
+    plugins: [{
+      name: 'aitoolsmax-agent-skills',
+      description: 'Portable AI Tools Max skills for Apify-powered research workflows.',
+      version: '1.0.0',
+      author: { name: 'AI Tools Max', email: config.catalog.supportEmail },
+      source: './',
+      category: 'data',
+      strict: false,
+      skills: skills.map((skill) => `./${skill.canonicalPath}`),
+      homepage: `https://github.com/${config.catalog.owner}/${config.catalog.repository}`
+    }]
+  };
+}
+
+function renderGeminiExtension(config) {
+  return {
+    name: 'aitoolsmax-agent-skills',
+    version: '1.0.0',
+    description: 'AI Tools Max skills for Apify Actors',
+    contextFileName: 'AGENTS.md',
+    repository: `https://github.com/${config.catalog.owner}/${config.catalog.repository}`
+  };
+}

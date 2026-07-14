@@ -1,0 +1,16 @@
+{
+  "schema_version": "1.0",
+  "generated_from": "https://github.com/aitoolsmax/agent-skills",
+  "deployment": "disabled",
+  "skills": [
+    {
+      "name": "apify-kick-scraper",
+      "title": "Apify Kick Scraper",
+      "description": "Research Kick.com creators, channels, categories, and live streams with the AI Tools Max Kick Data Scraper Actor on Apify.",
+      "version": "1.0.0",
+      "path": "skills/apify-kick-scraper",
+      "repository": "https://github.com/aitoolsmax/agent-skills",
+      "install": "npx skills add aitoolsmax/agent-skills --skill apify-kick-scraper --yes"
+    }
+  ]
+}
