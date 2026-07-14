@@ -29,7 +29,35 @@
           "mode": { "type": "string" },
           "priority": { "type": "integer", "minimum": 0 },
           "deploy": { "type": "boolean" },
-          "reason": { "type": "string" }
+          "reason": { "type": "string" },
+          "endpoint": { "type": "string" },
+          "listingBase": { "type": "string" }
+        }
+      }
+    },
+    "releases": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["version", "releasedAt", "platforms"],
+        "properties": {
+          "version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+          "releasedAt": { "type": "string", "format": "date" },
+          "platforms": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "additionalProperties": true,
+              "required": ["state"],
+              "properties": {
+                "state": { "type": "string", "minLength": 1 },
+                "url": { "type": ["string", "null"] },
+                "verification": { "type": "string" },
+                "next": { "type": "string" }
+              }
+            }
+          }
         }
       }
     },

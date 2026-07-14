@@ -16,6 +16,11 @@ Status: initial implementation and the skills.sh-first release are complete. The
 - Live release validation: one-result Actor run succeeded with approximately USD $0.0058 usage, below the server-enforced USD $1 ceiling.
 - Security baseline: Gen Agent Trust Hub passed. Snyk reported W011 for unavoidable third-party scraped text; the canonical skill now treats every returned field and URL as untrusted, forbids following dataset instructions or commands, and requires independent validation before opening returned URLs.
 - GitHub Actions: the initial and security-hardening `catalog-ci` runs passed.
+- Apify community distribution: one-skill PR `https://github.com/apify/awesome-skills/pull/64` is open; upstream workflow approval and maintainer review remain external.
+- AwesomeSkills.dev distribution: `https://www.awesomeskills.dev/en/skill/agent-skills-apify-kick-scraper` is live and exposes the canonical skill content, GitHub source, install command, and Actor ID. Its JSON-backed submission workflow is now the first executable secondary publisher adapter.
+- agentskill.sh: GitHub OAuth correctly identified `aitoolsmax` and granted only read access, but the platform rejected its callback twice. Anonymous import also remains blocked by its one-hour submission throttle, so no listing or webhook was created.
+- SkillsMP: its documented anonymous search API returned no `aitoolsmax` owner result on 2026-07-14; keep this as awaiting passive indexing rather than representing it as published.
+- Operational status is stored per skill in `skills.config.json` under `releases`; reusable platform defaults remain separate so future Actor skills start unpublished.
 
 ## 1. Decisions most likely to change
 
@@ -286,6 +291,7 @@ Use dependency-light JSON with a checked-in JSON Schema. One entry per skill:
 | **skills.sh** | **Primary release target. No documented publisher API; public GitHub skills are learned through legitimate `skills` CLI install telemetry and then served from the catalog** | No marketplace signup for GitHub source | Publish its GitHub source, perform one real smoke install with telemetry enabled, poll the public catalog/API, and record listing/audit state before continuing | **P0 — first** |
 | Public GitHub source | Push canonical repository and release tags required by skills.sh and passive indexers | Existing GitHub account/org permissions | `gh`/git; fully automatable after owner is chosen | P0 prerequisite |
 | `apify/awesome-skills` | Fork, add one skill plus marketplace entry, run CI rules, open one-skill PR | GitHub | Generate upstream edition/patch; human review and merge remain external | P1 |
+| AwesomeSkills.dev | Submit a public GitHub repository or deep skill path; the visible form uses a JSON endpoint and lists accepted skills immediately | None | Execute the JSON submission from the catalog CLI, capture the returned slug, then verify canonical content and Actor attribution | P1 |
 | agentskill.sh | First import from GitHub/direct `SKILL.md`; connect GitHub to claim; daily sync or push webhook | GitHub OAuth | One-time bootstrap/claim, then configure webhook and verify; no documented publish CLI | P1 |
 | ClawHub | Deferred; adapter, artifact generation, login, and publishing disabled | Future GitHub sign-in, ClawHub token, and explicit MIT-0 approval | Do not include in `--platform all`; re-enable only by an explicit config and policy change | Deferred |
 | SkillsMP | Indexes public GitHub; docs expose a read-only search API and no submission endpoint | None for passive indexing; API key optional for higher search quota | No fake publish step; poll search API and report indexed/not indexed | P1 |
@@ -412,7 +418,7 @@ Track, where available:
 3. Seed and verify skills.sh with one legitimate CLI install.
 4. Record the skills.sh listing URL, baseline installs, file tree, and security-audit status; resolve any listing issue before continuing.
 5. Open the generated one-skill PR to `apify/awesome-skills`.
-6. Submit/claim agentskill.sh and configure its GitHub push webhook.
+6. Retry agentskill.sh import after its platform throttle clears; claim only after its OAuth callback works, then configure the GitHub push webhook.
 7. Poll passive indexers and record listing URLs/statuses.
 8. Establish a monthly status report connecting directory metrics to Apify Actor usage/revenue.
 

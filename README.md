@@ -4,7 +4,7 @@ Portable Agent Skills backed by [AI Tools Max Actors on Apify](https://apify.com
 
 ## Install the Kick skill
 
-After the public repository is released:
+Install from the public repository:
 
 ```bash
 npx skills add aitoolsmax/agent-skills --skill apify-kick-scraper --yes
@@ -23,6 +23,7 @@ npm test
 
 npm run skill -- status apify-kick-scraper --platform all
 npm run skill -- publish apify-kick-scraper --platform all --dry-run
+npm run skill -- publish apify-kick-scraper --platform awesomeSkillsDev --execute
 npm run skill -- smoke apify-kick-scraper
 ```
 
@@ -47,6 +48,7 @@ The command creates the canonical folder and config entry with live testing disa
 | --- | --- |
 | skills.sh | First priority. Public GitHub source plus one legitimate CLI installation, followed by listing verification. |
 | Apify Awesome Skills | Generate a one-skill upstream edition and submit one PR. |
+| AwesomeSkills.dev | JSON-backed GitHub submission; executable from the catalog CLI. |
 | agentskill.sh | One-time GitHub import/claim, then repository sync/webhook. |
 | SkillsMP and AwesomeSkill | Passive public-GitHub indexing and verification. |
 | `.well-known/agent-skills` | Generate only. Future deployment may use Cloudflare Pages or GitHub Pages on a subdomain. |
@@ -54,6 +56,8 @@ The command creates the canonical folder and config entry with live testing disa
 | mcpservers.org | Not applicable to standalone Agent Skills. |
 
 Run `status` or `publish --dry-run` for machine-readable states and next actions. The project never represents a manual or passive index as a successful programmatic publication.
+
+Reusable platform workflow defaults live under `platforms` in `skills.config.json`; per-skill release evidence lives separately under `releases`. New skills therefore begin with honest unpublished defaults, while released skills can record verified URLs, audit outcomes, open pull requests, and external blockers without changing publisher code.
 
 ## Release order
 

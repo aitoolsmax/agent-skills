@@ -11,12 +11,64 @@
     "github": { "enabled": true, "mode": "source" },
     "skillsSh": { "enabled": true, "mode": "telemetry-indexed", "priority": 0 },
     "apifyAwesomeSkills": { "enabled": true, "mode": "pull-request", "priority": 1 },
-    "agentSkillSh": { "enabled": true, "mode": "github-sync", "priority": 2 },
-    "skillsMp": { "enabled": true, "mode": "passive-index", "priority": 3 },
-    "awesomeSkill": { "enabled": true, "mode": "passive-index", "priority": 4 },
+    "awesomeSkillsDev": {
+      "enabled": true,
+      "mode": "json-submit",
+      "priority": 2,
+      "endpoint": "https://www.awesomeskills.dev/api/v1/submit",
+      "listingBase": "https://www.awesomeskills.dev/en/skill"
+    },
+    "agentSkillSh": { "enabled": true, "mode": "github-sync", "priority": 3 },
+    "skillsMp": { "enabled": true, "mode": "passive-index", "priority": 4 },
+    "awesomeSkill": { "enabled": true, "mode": "passive-index", "priority": 5 },
     "clawhub": { "enabled": false, "mode": "disabled", "reason": "Deferred pending explicit MIT-0 opt-in" },
     "wellKnown": { "enabled": true, "mode": "generate-only", "deploy": false },
     "mcpServers": { "enabled": false, "mode": "not-applicable", "reason": "Directory accepts MCP servers, not standalone Agent Skills" }
+  },
+  "releases": {
+    "apify-kick-scraper": {
+      "version": "1.0.0",
+      "releasedAt": "2026-07-14",
+      "platforms": {
+        "github": {
+          "state": "live",
+          "url": "https://github.com/aitoolsmax/agent-skills",
+          "next": "Maintain the public canonical source and release tags."
+        },
+        "skillsSh": {
+          "state": "live",
+          "url": "https://www.skills.sh/aitoolsmax/agent-skills/apify-kick-scraper",
+          "verification": "Public CLI installation succeeded; Gen Agent Trust Hub passed; Snyk W011 was mitigated with an explicit untrusted-content boundary.",
+          "next": "Monitor installs and Actor conversion; re-check the cached audit after future content updates."
+        },
+        "apifyAwesomeSkills": {
+          "state": "pull-request-open",
+          "url": "https://github.com/apify/awesome-skills/pull/64",
+          "next": "Wait for upstream workflow approval and maintainer review."
+        },
+        "awesomeSkillsDev": {
+          "state": "live",
+          "url": "https://www.awesomeskills.dev/en/skill/agent-skills-apify-kick-scraper",
+          "verification": "The JSON submission endpoint indexed the canonical SKILL.md and the public page exposes the expected description, source, install command, and Actor ID.",
+          "next": "Monitor referral traffic and re-submit after material canonical updates if the directory does not refresh automatically."
+        },
+        "agentSkillSh": {
+          "state": "blocked-platform",
+          "url": "https://agentskill.sh/submit",
+          "verification": "GitHub OAuth identified aitoolsmax and granted read-only access, but agentskill.sh rejected the callback twice; anonymous import remains rate-limited.",
+          "next": "Retry one import after the platform throttle clears; configure sync only after a successful import and claim."
+        },
+        "skillsMp": {
+          "state": "awaiting-passive-index",
+          "verification": "The documented anonymous search API returned zero results for the aitoolsmax owner on 2026-07-14.",
+          "next": "Poll discovery from the public GitHub repository; no publisher endpoint is documented."
+        },
+        "awesomeSkill": {
+          "state": "awaiting-passive-index",
+          "next": "Verify public GitHub discovery; no documented publisher API is available."
+        }
+      }
+    }
   },
   "skills": {
     "apify-kick-scraper": {

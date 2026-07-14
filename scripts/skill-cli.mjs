@@ -2,7 +2,7 @@
 import { buildCatalog } from './lib/build.mjs';
 import { loadConfig, selectSkills } from './lib/config.mjs';
 import { createSkill } from './lib/create.mjs';
-import { platformStatuses, selectPlatforms } from './lib/platforms.mjs';
+import { platformStatuses, publishSkillToPlatform, selectPlatforms } from './lib/platforms.mjs';
 import { runSmokeTest } from './lib/smoke.mjs';
 import { scanRepositoryForSecrets, validateSkill } from './lib/validate.mjs';
 
@@ -31,7 +31,7 @@ function usage() {
   return `Usage:
   npm run skill -- validate [skill|all] [--json]
   npm run skill -- build [skill|all] [--json]
-  npm run skill -- publish [skill|all] --platform <name|all> --dry-run
+  npm run skill -- publish [skill|all] --platform <name|all> <--dry-run|--execute> [--force]
   npm run skill -- status [skill|all] --platform <name|all> [--json]
   npm run skill -- smoke <skill> [--execute] [--json]
   npm run skill -- create <skill> --actor-id <owner/name> --title <title> --description <description>
@@ -64,16 +64,25 @@ async function main() {
   }
 
   if (command === 'status' || command === 'publish') {
-    if (command === 'publish' && !flags['dry-run']) {
-      throw new Error('Publication requires an explicit platform-specific release approval. Re-run with --dry-run to inspect the workflow.');
+    const dryRun = Boolean(flags['dry-run']);
+    const execute = Boolean(flags.execute);
+    if (command === 'publish' && dryRun === execute) {
+      throw new Error('publish requires exactly one of --dry-run or --execute');
     }
     const platformNames = selectPlatforms(config, flags.platform ?? 'all');
     const result = {};
     for (const [name] of skills) {
       const statuses = platformStatuses(config, name);
-      result[name] = Object.fromEntries(platformNames.map((platform) => [platform, statuses[platform]]));
+      if (command === 'status' || dryRun) {
+        result[name] = Object.fromEntries(platformNames.map((platform) => [platform, statuses[platform]]));
+      } else {
+        result[name] = {};
+        for (const platform of platformNames) {
+          result[name][platform] = await publishSkillToPlatform(config, name, platform, { force: Boolean(flags.force) });
+        }
+      }
     }
-    return print({ command, dryRun: command === 'publish', skills: result }, Boolean(flags.json));
+    return print({ command, dryRun: command === 'publish' && dryRun, skills: result }, Boolean(flags.json));
   }
 
   if (command === 'smoke') {

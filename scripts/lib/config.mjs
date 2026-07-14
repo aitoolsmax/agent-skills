@@ -33,6 +33,19 @@ export function validateConfig(config) {
   requireString(config.catalog.repository, 'catalog.repository');
   if (config.catalog.license !== 'Apache-2.0') throw new Error('Canonical license must be Apache-2.0');
 
+  for (const [name, release] of Object.entries(config.releases ?? {})) {
+    const skill = config.skills[name];
+    if (!skill) throw new Error(`Release state references unknown skill: ${name}`);
+    if (release.version !== skill.version) {
+      throw new Error(`${name} release version must match its skill version`);
+    }
+    for (const platform of Object.keys(release.platforms ?? {})) {
+      if (!config.platforms[platform]) {
+        throw new Error(`${name} release state references unknown platform: ${platform}`);
+      }
+    }
+  }
+
   for (const [name, skill] of Object.entries(config.skills)) {
     if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(name)) throw new Error(`Invalid skill name: ${name}`);
     requireString(skill.actorId, `${name}.actorId`);

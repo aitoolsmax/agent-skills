@@ -4,7 +4,7 @@ import test from 'node:test';
 import { buildCatalog } from '../scripts/lib/build.mjs';
 import { loadConfig, selectSkills } from '../scripts/lib/config.mjs';
 import { fromRoot } from '../scripts/lib/files.mjs';
-import { platformStatuses } from '../scripts/lib/platforms.mjs';
+import { platformStatuses, publicationRequest, selectPlatforms } from '../scripts/lib/platforms.mjs';
 import { runSmokeTest } from '../scripts/lib/smoke.mjs';
 import { scanRepositoryForSecrets, validateSkill } from '../scripts/lib/validate.mjs';
 
@@ -42,8 +42,25 @@ test('skills.sh is first and ClawHub cannot publish', async () => {
   const config = await loadConfig();
   const statuses = platformStatuses(config, 'apify-kick-scraper');
   assert.equal(statuses.skillsSh.priority, 0);
+  assert.equal(statuses.skillsSh.state, 'live');
+  assert.match(statuses.skillsSh.url, /skills\.sh\/aitoolsmax\/agent-skills/);
+  assert.equal(statuses.apifyAwesomeSkills.state, 'pull-request-open');
+  assert.equal(statuses.awesomeSkillsDev.state, 'live');
+  assert.equal(statuses.agentSkillSh.state, 'blocked-platform');
   assert.equal(statuses.clawhub.state, 'disabled');
   assert.equal(config.platforms.clawhub.enabled, false);
+  assert.equal(selectPlatforms(config)[0], 'skillsSh');
+  assert.ok(!selectPlatforms(config).includes('clawhub'));
+  assert.ok(!selectPlatforms(config).includes('mcpServers'));
+});
+
+test('AwesomeSkills.dev publisher uses the canonical GitHub skill path', async () => {
+  const config = await loadConfig();
+  const request = publicationRequest(config, 'apify-kick-scraper', 'awesomeSkillsDev');
+  assert.equal(request.url, 'https://www.awesomeskills.dev/api/v1/submit');
+  assert.deepEqual(JSON.parse(request.init.body), {
+    url: 'https://github.com/aitoolsmax/agent-skills/tree/main/skills/apify-kick-scraper'
+  });
 });
 
 test('smoke command is dry-run and enforces the one-dollar ceiling', async () => {

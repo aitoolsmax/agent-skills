@@ -20,6 +20,12 @@ export function platformStatuses(config, skillName) {
       url: 'https://github.com/apify/awesome-skills',
       next: `Submit dist/apify-awesome-skills/${skillName} as one skill per PR.`
     },
+    awesomeSkillsDev: {
+      state: 'submission-ready',
+      automated: true,
+      url: 'https://www.awesomeskills.dev/en/submit',
+      next: 'Submit the canonical GitHub skill path through the JSON-backed submission workflow.'
+    },
     agentSkillSh: {
       state: 'manual-bootstrap',
       automated: 'sync-after-claim',
@@ -57,13 +63,66 @@ export function platformStatuses(config, skillName) {
       next: 'This directory is for MCP servers, not standalone Agent Skills.'
     }
   };
-  return entries;
+  const overrides = config.releases?.[skillName]?.platforms ?? {};
+  return Object.fromEntries(
+    Object.entries(entries).map(([name, status]) => [name, { ...status, ...overrides[name] }])
+  );
 }
 
 export function selectPlatforms(config, requested = 'all') {
-  const names = requested === 'all' ? Object.keys(config.platforms) : requested.split(',');
+  const names = requested === 'all'
+    ? Object.entries(config.platforms)
+      .filter(([, platform]) => platform.enabled)
+      .sort(([leftName, left], [rightName, right]) => {
+        const priorityDelta = (left.priority ?? Number.MAX_SAFE_INTEGER) - (right.priority ?? Number.MAX_SAFE_INTEGER);
+        return priorityDelta || leftName.localeCompare(rightName);
+      })
+      .map(([name]) => name)
+    : requested.split(',');
   for (const name of names) {
     if (!config.platforms[name]) throw new Error(`Unknown platform: ${name}`);
   }
   return names;
+}
+
+export function publicationRequest(config, skillName, platformName) {
+  const skill = config.skills[skillName];
+  const platform = config.platforms[platformName];
+  if (!skill) throw new Error(`Unknown skill: ${skillName}`);
+  if (!platform) throw new Error(`Unknown platform: ${platformName}`);
+  if (!platform.enabled) return null;
+  if (platformName !== 'awesomeSkillsDev') return null;
+
+  const sourceUrl = `https://github.com/${config.catalog.owner}/${config.catalog.repository}/tree/${config.catalog.defaultBranch}/${skill.canonicalPath}`;
+  return {
+    url: platform.endpoint,
+    init: {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url: sourceUrl })
+    },
+    listingBase: platform.listingBase
+  };
+}
+
+export async function publishSkillToPlatform(config, skillName, platformName, { force = false } = {}) {
+  const status = platformStatuses(config, skillName)[platformName];
+  if (!force && status?.state === 'live') {
+    return { state: 'already-live', executed: false, url: status.url };
+  }
+
+  const request = publicationRequest(config, skillName, platformName);
+  if (!request) {
+    return { state: 'no-programmatic-publisher', executed: false, url: status?.url ?? null, next: status?.next };
+  }
+
+  const response = await fetch(request.url, request.init);
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(`${platformName} publication failed (${response.status}): ${payload.error ?? 'unexpected response'}`);
+  return {
+    state: payload.status ?? 'submitted',
+    executed: true,
+    url: payload.slug ? `${request.listingBase}/${payload.slug}` : null,
+    response: payload
+  };
 }
