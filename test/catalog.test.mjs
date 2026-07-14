@@ -25,6 +25,8 @@ test('build is deterministic and keeps ClawHub disabled', async () => {
   const upstream = await readFile(fromRoot('dist/apify-awesome-skills/apify-kick-scraper/SKILL.md'), 'utf8');
   assert.match(upstream, /apify-awesome-skills\/apify-kick-scraper/);
   assert.doesNotMatch(upstream, /aitoolsmax-agent-skills\/apify-kick-scraper/);
+  assert.doesNotMatch(upstream, /\$USER_AGENT/);
+  assert.doesNotMatch(upstream, /apify actors info/);
   const wellKnown = JSON.parse(await readFile(fromRoot('.well-known/agent-skills/index.json'), 'utf8'));
   assert.equal(wellKnown.deployment, 'disabled');
   const openai = await readFile(fromRoot('skills/apify-kick-scraper/agents/openai.yaml'), 'utf8');

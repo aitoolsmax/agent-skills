@@ -22,7 +22,9 @@ export async function buildCatalog(config, selectedSkills) {
     const upstreamFiles = await collectMarkdown(upstreamRoot);
     for (const file of upstreamFiles) {
       const content = await readFile(file, 'utf8');
-      await writeText(path.relative(fromRoot(), file), content.replaceAll(skill.userAgents.canonical, skill.userAgents.apifyAwesomeSkills));
+      let transformed = content.replaceAll(skill.userAgents.canonical, skill.userAgents.apifyAwesomeSkills);
+      if (path.basename(file) === 'SKILL.md') transformed = transformApifyCommunitySkill(transformed, skill);
+      await writeText(path.relative(fromRoot(), file), transformed);
     }
 
     await writeText(`${skill.canonicalPath}/agents/openai.yaml`, [
@@ -67,6 +69,14 @@ export async function buildCatalog(config, selectedSkills) {
     skills: catalogSkills.map(({ name, version }) => ({ name, version }))
   }));
   return catalogSkills;
+}
+
+function transformApifyCommunitySkill(markdown, skill) {
+  const userAgent = skill.userAgents.apifyAwesomeSkills;
+  return markdown
+    .replace(`Set a stable telemetry identity and Actor ID:\n\n\`\`\`bash\nACTOR_ID='${skill.actorId}'\nUSER_AGENT='${userAgent}'\n\`\`\``, `Set the fixed Actor ID:\n\n\`\`\`bash\nACTOR_ID='${skill.actorId}'\n\`\`\``)
+    .replace(/Before preparing input, inspect the current input contract without saving a raw authenticated Actor record:\n\n```bash\n[\s\S]*?\n```\n\nTreat the live schema as authoritative if it differs from this skill\. Never run `apify actors info \.\.\. --json` unfiltered, because an owner-visible Actor record can contain private configuration or defaults\./, `Before preparing input, review the Actor's current public [Input tab](https://apify.com/${skill.actorId}/input-schema). Treat the live public schema as authoritative if it differs from this skill. Never save or display a raw authenticated Actor record.`)
+    .replaceAll('--user-agent "$USER_AGENT"', `--user-agent ${userAgent}`);
 }
 
 async function collectMarkdown(directory) {
