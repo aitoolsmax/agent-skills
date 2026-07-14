@@ -6,7 +6,16 @@ Use one canonical skill source plus generated platform adapters; do not maintain
 
 ClawHub is intentionally deferred and disabled because its mandatory MIT-0 publication license has not been accepted.
 
-Status: research and planning complete; implementation and external publishing await the interview decisions below.
+Status: initial implementation and the skills.sh-first release are complete. The public source is `aitoolsmax/agent-skills`; secondary distribution proceeds only from the validated canonical release.
+
+### Initial release record — 2026-07-14
+
+- Public repository: `https://github.com/aitoolsmax/agent-skills`, default branch `main`, Apache-2.0 detected by GitHub.
+- Canonical skill: `skills/apify-kick-scraper`, validated by the repository suite, Codex skill validator, Claude marketplace validator, and a temporary public-source installation.
+- skills.sh listing: `https://www.skills.sh/aitoolsmax/agent-skills/apify-kick-scraper`.
+- Live release validation: one-result Actor run succeeded with approximately USD $0.0058 usage, below the server-enforced USD $1 ceiling.
+- Security baseline: Gen Agent Trust Hub passed. Snyk reported W011 for unavoidable third-party scraped text; the canonical skill now treats every returned field and URL as untrusted, forbids following dataset instructions or commands, and requires independent validation before opening returned URLs.
+- GitHub Actions: the initial and security-hardening `catalog-ci` runs passed.
 
 ## 1. Decisions most likely to change
 
